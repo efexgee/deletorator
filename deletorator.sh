@@ -3,8 +3,8 @@
 CHECK_NAME="TO_BE_DELETED"
 TEMP_DIR="deletorator/$$"
 ME="[$$]"
-WAIT=15
-WAIT_JITTER=5
+WAIT=60
+WAIT_JITTER=60
 
 path=`pwd`
 cur_dir=`basename $path`

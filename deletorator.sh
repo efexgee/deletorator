@@ -1,26 +1,38 @@
-#1/bin/bash
+#/bin/bash
 
+# Intended to run as multiple instances of this
+# Does not clean up temp dirs when it's killed
+# Does not have a clean way to exit
+
+# this is script is scary and will only run inside a dir named this:
 CHECK_NAME="TO_BE_DELETED"
 TEMP_DIR="deletorator/$$"
 ME="[$$]"
+# how long to wait if the dir is empty and how much random wait to add to
+# reduce the likelihood of collisions
 WAIT=60
 WAIT_JITTER=60
 
 path=`pwd`
 cur_dir=`basename $path`
 
+# safety check
 if [ $cur_dir != $CHECK_NAME ]; then
 	echo "$ME The current directory ($path) doesn't match the expected name: $CHECK_NAME"
 	exit
 fi
 
+# create this worker's temp directory
 mkdir -p $TEMP_DIR || ( echo "$ME Failed to create temp dir: $TEMP_DIR"; exit )
 echo "$ME Created temp dir: $TEMP_DIR"
 
+# main loop
 while true; do
 	#echo "$ME Entering main loop."
+	# exclude the temp dirs from the deletions
 	target=`ls | grep -v deletorator | sort -R | head -1`
 	
+	# check the dir for things to delete
 	if [ -n "$target" ]; then
 		# delete
 		echo "$ME Targeting: $target"
@@ -34,4 +46,5 @@ while true; do
 	fi
 done
 
+# without a clean way to exit, the script should never get here
 echo "$ME Exited main loop. This should never happen."

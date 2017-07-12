@@ -10,7 +10,7 @@ TEMP_DIR="deletorator/$$"
 ME="[$$]"
 # how long to wait if the dir is empty and how much random wait to add to
 # reduce the likelihood of collisions
-WAIT=60
+WAIT=300
 WAIT_JITTER=60
 
 path=`pwd`
@@ -41,6 +41,8 @@ while true; do
 	else
 		# directory is empty... wait
 		rand_wait=$(($WAIT + $RANDOM % $WAIT_JITTER))
+        #TODO print directory
+        #TODO or label the $ME by dir/task
 		echo "$ME Directory empty. Waiting for $rand_wait secconds."
 		sleep $rand_wait
 	fi

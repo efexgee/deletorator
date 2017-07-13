@@ -6,12 +6,16 @@
 
 # this is script is scary and will only run inside a dir named this:
 CHECK_NAME="TO_BE_DELETED"
-TEMP_DIR="deletorator/$$"
+SUB_DIR="deletorator"
+TEMP_DIR="$SUB_DIR/$$"
+STOP_FILE="$SUB_DIR/STOP_DELETORATORS"
 ME="[$$]"
 # how long to wait if the dir is empty and how much random wait to add to
 # reduce the likelihood of collisions
 WAIT=300
 WAIT_JITTER=60
+WAIT=10
+WAIT_JITTER=5
 
 path=`pwd`
 cur_dir=`basename $path`
@@ -29,6 +33,12 @@ echo "$ME Created temp dir: $TEMP_DIR"
 # main loop
 while true; do
 	#echo "$ME Entering main loop."
+
+    if [ -f $STOP_FILE ]; then
+        echo "$ME Exiting because stop file found: $STOP_FILE"
+        exit
+    fi
+
 	# exclude the temp dirs from the deletions
 	target=`ls | grep -v deletorator | sort -R | head -1`
 	

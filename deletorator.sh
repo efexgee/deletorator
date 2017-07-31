@@ -8,7 +8,7 @@ umask 022
 
 # this is script is scary and will only run inside a dir named this:
 CHECK_NAME="TO_BE_DELETED"
-SUB_DIR="deletorator"
+SUB_DIR="DELETORATOR"
 # using our parent's PID so it matches the jobs -p -l output
 PID=$PPID
 TEMP_DIR="$SUB_DIR/$PID"

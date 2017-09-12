@@ -7,6 +7,10 @@
 # Ideally it would be a single worker spawning processes
 # Does not clean up temp dirs when it's killed
 
+#TODO why does the target dir get deleted twice? (or try to)
+#TODO deletorators should die if the DELETORATOR dir itself is gone
+#TODO instead of failing to delete its PID dir when it's gone, check for it first
+
 umask 022
 
 # Because this script is scary will only run inside a dir named this:
@@ -28,7 +32,7 @@ STOP_ALL_FILE="$SUB_DIR/STOP_ALL_DELETORATORS"  # to stop all deletorators
 ME="[$PID]"
 
 # Define timeouts
-WAIT=300        # seconds to wait if there is nothing to delete
+WAIT=120        # seconds to wait if there is nothing to delete
 WAIT_JITTER=60  # wait up to this many additional seconds to avoid collisions
 START_JITTER=5  # wait up to this many seconds before starting the first deletion
 

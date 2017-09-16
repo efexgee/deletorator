@@ -88,6 +88,7 @@ while true; do
 
 	# exclude the temp dirs and the stop file from the deletions
     # and pick a random entry to delete
+    #TODO exclude based on the constant
 	target=`ls | grep -vi deletorator | sort -R | head -1`
 	
 	# check whether we got something to delete

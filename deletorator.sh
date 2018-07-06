@@ -7,10 +7,6 @@
 # Ideally it would be a single worker spawning processes
 # Does not clean up temp dirs when it's killed
 
-#TODO why does the target dir get deleted twice? (or try to)
-#TODO deletorators should die if the DELETORATOR dir itself is gone
-#TODO instead of failing to delete its PID dir when it's gone, check for it first
-
 umask 022
 
 # Because this script is scary will only run inside a dir named this:
@@ -27,6 +23,7 @@ TEMP_DIR="$SUB_DIR/$PID"                        # deletorator's working dir
 # This will not interrupt them
 STOP_FILE="$TEMP_DIR/STOP_DELETORATOR"          # to stop a single deletorator
 STOP_ALL_FILE="$SUB_DIR/STOP_ALL_DELETORATORS"  # to stop all deletorators
+STOP_SIGNAL="SIGUSR1"
 
 # Prefix for messages to identify who printed it
 ME="[$PID]"
@@ -50,12 +47,31 @@ fi
 mkdir -p $TEMP_DIR
 
 if [ $? == 0 ]; then
-    #XXX probably too verbose
     echo "$ME Created temp dir: $TEMP_DIR"
 else
     echo "$ME Failed to create temp dir: $TEMP_DIR. Exiting."
     exit 3
 fi
+
+# shut down on signal
+function shutdown() {
+    echo "Caught signal ${STOP_SIGNAL} while ${state}"
+
+    case $state in
+        "waiting")
+            rmdir -v $TEMP_DIR ;;
+        "working")
+            echo "Partial deletion under $TEMP_DIR/$target" ;;
+        "stopping")
+            echo "That probably shouldn't have happened..." ;;
+        *)
+            echo "Unknown state: ${state}"
+            exit 11
+            ;;
+    esac
+
+    exit 0
+}
 
 # delay initial start
 # (icky string trickery to make random floating point number)
@@ -70,6 +86,7 @@ echo "$ME Starting. To stop me, create the file '$STOP_FILE'"
 while true; do
     # check for stop files
     if [ -f $STOP_FILE ] || [ -f $STOP_ALL_FILE ]; then
+        state="stopping"
 
         if [ -f $STOP_FILE ]; then
             stop_file=$STOP_FILE
@@ -81,14 +98,13 @@ while true; do
         fi
 
         echo "$ME Exiting because stop file found: $stop_file"
-        #XXX this seems to fail regularly (always?)
+
         rmdir $TEMP_DIR
         exit 0
     fi
 
 	# exclude the temp dirs and the stop file from the deletions
     # and pick a random entry to delete
-    #TODO exclude based on the constant
 	target=`ls | grep -vi deletorator | sort -R | head -1`
 	
 	# check whether we got something to delete
@@ -98,13 +114,13 @@ while true; do
 		echo "$ME Targeting: $target"
         # move the directory to our working dir so nobody else grabs it
 		mv $target $TEMP_DIR/ || echo "$ME Failed to move file to temp dir ($TEMP_DIR): $target"
+        state="working"
 		rm -r --one-file-system --interactive=never $TEMP_DIR/$target || echo "$ME Failed to delete: $TEMP_DIR/$target"
 	else
 		# directory is empty... wait
 		rand_wait=$(($WAIT + $RANDOM % $WAIT_JITTER))
-        #TODO print directory
-        #TODO or label the $ME by dir/task
 		echo "$ME Directory empty. Waiting for $rand_wait secconds."
+        state="waiting"
 		sleep $rand_wait
 	fi
 done

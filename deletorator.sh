@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # Deletes directories or files placed into the current directory while avoiding
 # multiple deletes working on the same directory tree
@@ -34,11 +34,11 @@ WAIT_JITTER=60  # wait up to this many additional seconds to avoid collisions
 START_JITTER=5  # wait up to this many seconds before starting the first deletion
 
 # grab current dir name
-path=`pwd`
-cur_dir=`basename $path`
+path=$(pwd)
+cur_dir=$(basename $path)
 
 # check that we're in a dir with the correct name to avoid disasters
-if [ $cur_dir != $CHECK_NAME ]; then
+if [[ $cur_dir != $CHECK_NAME ]]; then
 	echo "$ME The current directory ($path) doesn't match the expected name: $CHECK_NAME"
 	exit 2
 fi
@@ -75,8 +75,8 @@ function shutdown() {
 
 # delay initial start
 # (icky string trickery to make random floating point number)
-start_jitter=$(($START_JITTER * 10))
-start_wait=`echo $((RANDOM % $start_jitter + 1 )) | sed 's/\([0-9]\)$/.\1/'`
+start_jitter=$((START_JITTER * 10))
+start_wait=$(echo $((RANDOM % start_jitter + 1 )) | sed 's/\([0-9]\)$/.\1/')
 echo "$ME Waiting $start_wait seconds to start."
 sleep $start_wait
 
@@ -105,7 +105,7 @@ while true; do
 
 	# exclude the temp dirs and the stop file from the deletions
     # and pick a random entry to delete
-	target=`ls | grep -vi deletorator | sort -R | head -1`
+	target=$(ls | grep -vi deletorator | sort -R | head -1)
 	
 	# check whether we got something to delete
     # this step is subject to race conditions but I think it's unlikely
@@ -118,7 +118,7 @@ while true; do
 		rm -r --one-file-system --interactive=never $TEMP_DIR/$target || echo "$ME Failed to delete: $TEMP_DIR/$target"
 	else
 		# directory is empty... wait
-		rand_wait=$(($WAIT + $RANDOM % $WAIT_JITTER))
+		rand_wait=$((WAIT + RANDOM % WAIT_JITTER))
 		echo "$ME Directory empty. Waiting for $rand_wait secconds."
         state="waiting"
 		sleep $rand_wait
